@@ -40,4 +40,4 @@ jobs:
           kubectl get deployments,pods,svc -o wide
           URL=$(minikube service devops-service --url)
           echo "Service URL: $URL"
-          curl -sf "$URL" | grep "DevOps CI/CD Virtual Lab"
+          curl -sf --retry 8 --retry-delay 2 --retry-connrefused "$URL" | grep "DevOps CI/CD Virtual Lab"
