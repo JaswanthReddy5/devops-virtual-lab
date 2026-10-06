@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops
+  template:
+    metadata:
+      labels:
+        app: devops
+    spec:
+      containers:
+        - name: devops-container
+          image: devops-lab-app:latest
+          # Image is built locally and loaded into Minikube, not pulled from a registry
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80

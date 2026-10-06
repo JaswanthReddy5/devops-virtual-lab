@@ -1,0 +1,25 @@
+---
+# VLE-5 Part D: Configure the server - install and start Docker
+- name: Configure Server
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verify Docker version
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Show Docker version
+      debug:
+        msg: "{{ inventory_hostname }} -> {{ docker_version.stdout }}"

@@ -1,0 +1,43 @@
+name: DevOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t devops-lab-app:latest ./app
+
+      - name: Test Docker Container
+        run: |
+          docker run -d --name smoke -p 8080:80 devops-lab-app:latest
+          sleep 3
+          curl -sf http://localhost:8080 | grep "DevOps CI/CD Virtual Lab"
+          docker rm -f smoke
+
+      - name: Start Minikube (Kubernetes cluster on the runner)
+        uses: medyagh/setup-minikube@latest
+
+      - name: Load image into Minikube
+        run: minikube image load devops-lab-app:latest
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yml
+          kubectl apply -f k8s/service.yml
+          kubectl rollout status deployment/devops-app --timeout=120s
+
+      - name: Verify Deployment
+        run: |
+          kubectl get deployments,pods,svc -o wide
+          URL=$(minikube service devops-service --url)
+          echo "Service URL: $URL"
+          curl -sf "$URL" | grep "DevOps CI/CD Virtual Lab"
